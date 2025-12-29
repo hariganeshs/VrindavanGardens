@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Vrindavan Gardens & Agro Nursery - Premium plant nursery in Kottayam. Discover exotic plants, elegant pots, and gardening essentials.">
+    <title>Vrindavan Gardens | Premium Agro Nursery</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+    <!-- Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        forest: {
+                            50: '#f2fbf5', 100: '#e1f7e6', 200: '#c3ecd0', 300: '#94dbb3',
+                            400: '#5cc290', 500: '#35a574', 600: '#25845c', 700: '#1f6a4c',
+                            800: '#1b543e', 900: '#0f291e', 950: '#0d2d23'
+                        },
+                        gold: {
+                            400: '#fbbf24', 500: '#f59e0b', 600: '#d97706', 700: '#b45309'
+                        },
+                        cream: '#fcfbf7', // Warm background
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 1s ease-out forwards',
+                        'slide-up': 'slideUp 0.8s ease-out forwards',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-15px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        slideUp: {
+                            '0%': { opacity: '0', transform: 'translateY(30px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Utilities */
+        .glass-nav {
+            background: rgba(15, 41, 30, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .text-stroke {
+            -webkit-text-stroke: 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .hero-text-shadow {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f291e;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #35a574;
+            border-radius: 3px;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #35a574;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-cream text-gray-800 antialiased selection:bg-forest-500 selection:text-white">
+
+    <!-- Definitions -->
+    <svg class="hidden">
+        <symbol id="icon-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+        </symbol>
+        <symbol id="icon-whatsapp" viewBox="0 0 24 24" fill="currentColor">
+            <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+        </symbol>
+    </svg>
+
+    <!-- Navbar -->
+    <nav class="glass-nav fixed w-full z-50 transition-all duration-300">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3 group">
+                <div
+                    class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-forest-500 transition-colors">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="font-serif text-xl text-white tracking-wide">Vrindavan Gardens</h1>
+                    <p class="text-xs text-forest-200 uppercase tracking-widest">& Agro Nursery</p>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-6">
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex items-center gap-8 text-sm font-medium text-forest-100">
+                    <a href="#about" class="hover:text-gold-400 transition-colors">About</a>
+                    <a href="#collection" class="hover:text-gold-400 transition-colors">Collection</a>
+                    <a href="#visit" class="hover:text-gold-400 transition-colors">Visit Us</a>
+                </div>
+
+                <!-- CTA -->
+                <a href="https://wa.me/919562532919" target="_blank"
+                    class="hidden sm:flex items-center gap-2 bg-gradient-to-r from-forest-500 to-forest-600 hover:from-forest-400 hover:to-forest-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg hover:shadow-green-900/20 transition-all transform hover:-translate-y-0.5">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                        <use href="#icon-whatsapp" />
+                    </svg>
+                    <span>Connect</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative h-screen min-h-[600px] flex items-center justify-center overflow-hidden">
+        <!-- Background Image -->
+        <div class="absolute inset-0 z-0">
+            <img src="assets/hero_bg.png" alt="Lush Garden" class="w-full h-full object-cover animate-fade-in">
+            <div
+                class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-forest-900/90 mix-blend-multiply">
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="relative z-10 container mx-auto px-6 text-center text-white mt-16">
+            <span
+                class="inline-block py-1 px-4 border border-white/30 rounded-full text-sm font-medium bg-white/5 backdrop-blur-sm mb-6 animate-slide-up"
+                style="animation-delay: 0.1s;">Est. Kottayam, Kerala</span>
+            <h1 class="font-serif text-5xl md:text-7xl lg:text-8xl mb-6 leading-tight animate-slide-up hero-text-shadow"
+                style="animation-delay: 0.2s;">
+                Bring Nature <br><span class="text-gold-400 italic">Home</span>
+            </h1>
+            <p class="text-lg md:text-2xl text-forest-100 max-w-2xl mx-auto mb-10 font-light animate-slide-up"
+                style="animation-delay: 0.3s;">
+                Curated collection of exotic plants, artisanal pots, and gardening essentials for the modern home.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center animate-slide-up" style="animation-delay: 0.4s;">
+                <a href="#collection"
+                    class="px-8 py-4 bg-white text-forest-900 rounded-full font-semibold hover:bg-forest-50 transition-colors shadow-xl">
+                    Explore Collection
+                </a>
+                <a href="#visit"
+                    class="px-8 py-4 border border-white/40 bg-white/10 backdrop-blur-sm text-white rounded-full font-semibold hover:bg-white/20 transition-colors">
+                    Locate Us
+                </a>
+            </div>
+        </div>
+
+        <!-- Scroll Indicator -->
+        <div class="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce text-white/50">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+        </div>
+    </header>
+
+    <!-- About Section -->
+    <section id="about" class="py-24 bg-cream overflow-hidden">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col lg:flex-row items-center gap-16">
+                <div class="w-full lg:w-1/2 relative">
+                    <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl relative z-10">
+                        <!-- Placeholder for secondary image, using a pattern for now -->
+                        <div class="w-full h-full bg-forest-900 flex items-center justify-center p-12">
+                            <svg viewBox="0 0 1024 672" class="w-full text-forest-800 opacity-20">
+                                <path d="M743.985,468.012 C745.403,466.53 745.757,464.868 744.856,462.979..."
+                                    fill="currentColor" />
+                            </svg>
+                            <!-- Note: Replaced full SVG path in production code for brevity, here focusing on layout -->
+                            <span class="text-white/20 font-serif text-6xl">VG</span>
+                        </div>
+                    </div>
+                    <!-- Decorative Element -->
+                    <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-gold-400/20 rounded-full blur-3xl -z-0">
+                    </div>
+                </div>
+
+                <div class="w-full lg:w-1/2">
+                    <span class="text-gold-600 font-bold uppercase tracking-wider text-sm mb-2 block">Our Story</span>
+                    <h2 class="font-serif text-4xl md:text-5xl text-forest-900 mb-6 leading-tight">Cultivating Joy in
+                        Every Leaf</h2>
+                    <p class="text-gray-600 text-lg leading-relaxed mb-6">
+                        Nestled in the lush landscapes of Pampady, Kottayam, Vrindavan Gardens is more than just a
+                        nursery. It's a sanctuary for plant lovers. We meticulously select every sapling, ensuring they
+                        bring vibrant life and serenity to your spaces.
+                    </p>
+                    <p class="text-gray-600 text-lg leading-relaxed mb-8">
+                        From rare indoor varieties to hardy outdoor ornamentals and fruit-bearing trees, our expertise
+                        is rooted in years of passion for agriculture.
+                    </p>
+
+                    <div class="grid grid-cols-2 gap-8">
+                        <div>
+                            <h4 class="font-serif text-2xl text-forest-800 mb-1">500+</h4>
+                            <p class="text-sm text-gray-500 uppercase tracking-wide">Plant Varieties</p>
+                        </div>
+                        <div>
+                            <h4 class="font-serif text-2xl text-forest-800 mb-1">100%</h4>
+                            <p class="text-sm text-gray-500 uppercase tracking-wide">Organic Care</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Collection Section -->
+    <section id="collection" class="py-24 bg-forest-50 relative">
+        <div class="container mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="font-serif text-4xl md:text-5xl text-forest-900 mb-4">Curated Collection</h2>
+                <div class="h-1 w-20 bg-gold-400 mx-auto rounded-full"></div>
+            </div>
+
+            <!-- Filters -->
+            <div class="flex flex-wrap justify-center gap-3 mb-12" id="filter-container">
+                <!-- Injected via JS -->
+            </div>
+
+            <!-- Loading State -->
+            <div id="loading" class="flex flex-col items-center justify-center py-20">
+                <div class="loader mb-4"></div>
+                <p class="text-forest-600 font-medium">Fetching fresh greens...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error" class="hidden text-center py-20">
+                <p class="text-red-500 mb-4">Unable to load the garden.</p>
+                <button onclick="fetchData()" class="px-6 py-2 bg-forest-600 text-white rounded-full">Try Again</button>
+            </div>
+
+            <!-- Grid -->
+            <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                <!-- Cards Injected via JS -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty" class="hidden text-center py-20">
+                <p class="text-gray-500 text-lg">No plants found in this category 🌱</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Location / Visit Us -->
+    <section id="visit" class="py-24 bg-white">
+        <div class="container mx-auto px-6">
+            <div class="bg-forest-900 rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row">
+                <div class="w-full md:w-1/2 p-12 lg:p-16 flex flex-col justify-center text-white">
+                    <h3 class="font-serif text-3xl md:text-4xl mb-6">Visit Our Garden</h3>
+                    <p class="text-forest-200 mb-8 leading-relaxed">
+                        Experience the tranquility of nature. Walk through our aisles of greenery and let our experts
+                        guide you to your perfect plant match.
+                    </p>
+
+                    <div class="space-y-6">
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-10 h-10 rounded-full bg-forest-800 flex items-center justify-center flex-shrink-0 text-gold-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg">Address</h4>
+                                <p class="text-forest-300">Kothala P.O., Pampady, Kottayam, Kerala - 686502</p>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-4">
+                            <div
+                                class="w-10 h-10 rounded-full bg-forest-800 flex items-center justify-center flex-shrink-0 text-gold-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-lg">Hours</h4>
+                                <p class="text-forest-300">Mon-Sat: 9:00 AM - 7:00 PM<br>Sun: 10:00 AM - 5:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <a href="https://maps.app.goo.gl/f7eSaPPBDeQfbeMX7" target="_blank"
+                        class="mt-10 inline-flex items-center gap-2 text-gold-400 font-semibold hover:text-gold-300 transition-colors">
+                        Get Directions <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </a>
+                </div>
+                <div class="w-full md:w-1/2 min-h-[400px]">
+                    <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d7868.812609959605!2d76.6642412!3d9.5601997!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b063326c6adf91f%3A0x9e755c1376d038f1!2zVnJpbmRhdmFuIEdhcmRlbnMgJiBBZ3JvIE51cnNlcnkg4LS14LWD4LSo4LWN4LSm4LS-4LS14LW7IOC0l-C0vuC1vOC0oeC1u-C0uOC1jSAmIOC0heC0l-C1jeC0sOC1iyDgtKjgtYfgtLTgtY3gtLjgtLHgtL8!5e0!3m2!1sen!2sin!4v1766903303729!5m2!1sen!2sin"
+                        width="100%" height="100%" style="border:0; filter: grayscale(20%) contrast(1.2);"
+                        allowfullscreen="" loading="lazy">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-forest-950 text-forest-300 py-12 border-t border-white/5">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center gap-3 mb-6 opacity-70">
+                <div class="w-8 h-8 bg-forest-800 rounded-full flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                </div>
+                <h2 class="font-serif text-xl tracking-wide text-white">Vrindavan Gardens</h2>
+            </div>
+            <p class="text-sm mb-6">&copy; 2024 Vrindavan Gardens & Agro Nursery. All rights reserved.</p>
+            <div class="flex justify-center gap-6">
+                <!-- Socials could go here -->
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMbF1S6ty57d2jw0nb_DKqPHFAawcTFNCem8RhDsNhtsPmK0i5hxJjakpyWiH8iDVVyIWKG6_U2AtJ/pub?output=csv';
+        const WHATSAPP = '919562532919';
+        let products = [];
+        let activeCat = 'all';
+
+        // Helpers
+        const getVal = (p, ...k) => {
+            for (let key of k) if (p[key]) return p[key];
+            for (let k2 of Object.keys(p)) if (k.some(x => k2.toLowerCase() === x.toLowerCase()) && p[k2]) return p[k2];
+            return '';
+        };
+        const formatMoney = (p) => {
+            if (!p) return 'Ask for Price';
+            const n = parseFloat(p.replace(/[^\d.]/g, ''));
+            return isNaN(n) ? p : `₹${n.toLocaleString('en-IN')}`;
+        };
+        const driveImg = (u) => {
+            if (!u) return '';
+            if (u.includes('id=')) return `https://drive.google.com/uc?export=view&id=${u.match(/id=([\w-]+)/)?.[1]}`;
+            if (u.includes('/file/d/')) return `https://drive.google.com/uc?export=view&id=${u.match(/\/file\/d\/([\w-]+)/)?.[1]}`;
+            return u;
+        }
+
+        // DOM Elements
+        const el = {
+            grid: document.getElementById('grid'),
+            filters: document.getElementById('filter-container'),
+            loading: document.getElementById('loading'),
+            error: document.getElementById('error'),
+            empty: document.getElementById('empty')
+        };
+
+        // Render
+        function renderFilters(cats) {
+            const icons = { 'plants': '🌿', 'pots': '🏺', 'tools': '✂️', 'fertilizers': '💧', 'default': '🍃' };
+            const mkBtn = (c, name) => `
+                <button onclick="setCat('${c}')" 
+                    class="px-5 py-2 rounded-full text-sm font-medium transition-all ${activeCat === c
+                    ? 'bg-forest-600 text-white shadow-lg scale-105'
+                    : 'bg-white text-forest-700 hover:bg-forest-100'}">
+                    ${icons[c] || icons.default} ${name}
+                </button>`;
+
+            el.filters.innerHTML = mkBtn('all', 'All Collection') + cats.map(c => mkBtn(c, c.charAt(0).toUpperCase() + c.slice(1))).join('');
+        }
+
+        function createCard(p, i) {
+            const img = driveImg(getVal(p, 'Image', 'image', 'Photo'));
+            const name = getVal(p, 'Name', 'name', 'Title') || 'Unnamed Detail';
+            const price = getVal(p, 'Price', 'price', 'Cost');
+            const cat = getVal(p, 'Category', 'category');
+
+            return `
+                <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 opacity-0 animate-slide-up" style="animation-delay: ${i * 0.05}s">
+                    <div class="relative h-64 overflow-hidden">
+                        <img src="${img}" alt="${name}" loading="lazy" 
+                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            onerror="this.src='https://placehold.co/400x300/e1f7e6/1f6a4c?text=No+Image'">
+                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                        <span class="absolute top-4 left-4 bg-white/90 backdrop-blur text-forest-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">${cat}</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="font-serif text-xl text-forest-900 mb-2 truncate">${name}</h3>
+                        <div class="flex items-center justify-between mt-4 border-t border-forest-50 pt-4">
+                            <span class="text-gold-600 font-bold text-lg">${formatMoney(price)}</span>
+                            <a href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hi, interested in: ' + name)}" target="_blank" 
+                                class="text-forest-500 hover:text-forest-700 transition-colors flex items-center gap-1 text-sm font-medium">
+                                Buy Now <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderGrid() {
+            const filtered = activeCat === 'all' ? products : products.filter(p => getVal(p, 'Category').toLowerCase() === activeCat);
+            if (filtered.length === 0) {
+                el.grid.innerHTML = '';
+                el.empty.classList.remove('hidden');
+            } else {
+                el.empty.classList.add('hidden');
+                el.grid.innerHTML = filtered.map((p, i) => createCard(p, i)).join('');
+            }
+        }
+
+        window.setCat = (c) => {
+            activeCat = c;
+            renderFilters([...new Set(products.map(p => getVal(p, 'Category').toLowerCase()))].sort());
+            renderGrid();
+        };
+
+        window.fetchData = () => {
+            el.loading.classList.remove('hidden');
+            el.error.classList.add('hidden');
+            el.grid.innerHTML = '';
+
+            Papa.parse(CSV_URL, {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: (res) => {
+                    el.loading.classList.add('hidden');
+                    if (res.data && res.data.length) {
+                        products = res.data;
+                        const cats = [...new Set(products.map(p => getVal(p, 'Category').toLowerCase()))].filter(Boolean).sort();
+                        renderFilters(cats);
+                        renderGrid();
+                    } else {
+                        el.error.classList.remove('hidden');
+                    }
+                },
+                error: (err) => {
+                    console.error(err);
+                    el.loading.classList.add('hidden');
+                    el.error.classList.remove('hidden');
+                }
+            });
+        };
+
+        // Init
+        document.addEventListener('DOMContentLoaded', fetchData);
+
+        // Navbar Scroll Effect
+        window.addEventListener('scroll', () => {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('py-2', 'shadow-lg');
+                nav.classList.remove('py-4');
+            } else {
+                nav.classList.add('py-4');
+                nav.classList.remove('py-2', 'shadow-lg');
+            }
+        });
+    </script>
+</body>
+
+</html>

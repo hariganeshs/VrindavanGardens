@@ -385,28 +385,73 @@
 
     <!-- Scripts -->
     <script>
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTMbF1S6ty57d2jw0nb_DKqPHFAawcTFNCem8RhDsNhtsPmK0i5hxJjakpyWiH8iDVVyIWKG6_U2AtJ/pub?output=csv';
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA7D1wlUdI93kjQNHHVTxmyM2L_MoTvbPmOGhOOlMfQb9F44q24_tw6BZOGgg4OyEfgWFAKKVwczZa/pub?output=csv';
         const WHATSAPP = '919562532919';
         let products = [];
         let activeCat = 'all';
 
-        // Helpers
-        const getVal = (p, ...k) => {
-            for (let key of k) if (p[key]) return p[key];
-            for (let k2 of Object.keys(p)) if (k.some(x => k2.toLowerCase() === x.toLowerCase()) && p[k2]) return p[k2];
+        // Helper to get value from product with flexible key matching
+        const getVal = (p, ...keys) => {
+            for (let key of keys) {
+                if (p[key] !== undefined && p[key] !== null && String(p[key]).trim()) {
+                    return String(p[key]).trim();
+                }
+            }
+            // Try case-insensitive match
+            for (let k of Object.keys(p)) {
+                const trimmedK = k.trim().toLowerCase();
+                for (let key of keys) {
+                    if (trimmedK === key.toLowerCase() && p[k] !== undefined && p[k] !== null && String(p[k]).trim()) {
+                        return String(p[k]).trim();
+                    }
+                }
+            }
             return '';
         };
+
+        // Format price with rupee symbol
         const formatMoney = (p) => {
-            if (!p) return 'Ask for Price';
-            const n = parseFloat(p.replace(/[^\d.]/g, ''));
-            return isNaN(n) ? p : `₹${n.toLocaleString('en-IN')}`;
+            if (!p || p === '') return 'Ask for Price';
+            const cleaned = String(p).trim();
+            if (!cleaned) return 'Ask for Price';
+            // Handle price ranges like "250-350"
+            if (cleaned.includes('-')) {
+                const parts = cleaned.split('-').map(x => x.trim().replace(/[^\d]/g, ''));
+                if (parts.length === 2 && parts[0] && parts[1]) {
+                    return `₹${parseInt(parts[0]).toLocaleString('en-IN')} - ₹${parseInt(parts[1]).toLocaleString('en-IN')}`;
+                }
+            }
+            const n = parseFloat(cleaned.replace(/[^\d.]/g, ''));
+            return isNaN(n) ? cleaned : `₹${n.toLocaleString('en-IN')}`;
         };
+
+        // Convert Google Drive share links to viewable image URLs
         const driveImg = (u) => {
             if (!u) return '';
-            if (u.includes('id=')) return `https://drive.google.com/uc?export=view&id=${u.match(/id=([\w-]+)/)?.[1]}`;
-            if (u.includes('/file/d/')) return `https://drive.google.com/uc?export=view&id=${u.match(/\/file\/d\/([\w-]+)/)?.[1]}`;
+            u = String(u).trim();
+            if (!u || u === '[URL]' || u.startsWith('[')) return '';
+
+            // Extract file ID from various Google Drive URL formats
+            let fileId = null;
+
+            if (u.includes('/file/d/')) {
+                const match = u.match(/\/file\/d\/([\w-]+)/);
+                if (match) fileId = match[1];
+            } else if (u.includes('id=')) {
+                const match = u.match(/id=([\w-]+)/);
+                if (match) fileId = match[1];
+            } else if (u.includes('drive.google.com') && u.includes('/d/')) {
+                const match = u.match(/\/d\/([\w-]+)/);
+                if (match) fileId = match[1];
+            }
+
+            if (fileId) {
+                // Use Google's thumbnail API - more reliable for embedding
+                return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400`;
+            }
+
             return u;
-        }
+        };
 
         // DOM Elements
         const el = {
@@ -417,40 +462,62 @@
             empty: document.getElementById('empty')
         };
 
-        // Render
+        // Render category filter buttons
         function renderFilters(cats) {
-            const icons = { 'plants': '🌿', 'pots': '🏺', 'tools': '✂️', 'fertilizers': '💧', 'default': '🍃' };
+            const icons = {
+                'indoor & outdoor': '🌿',
+                'indoor plant': '🏠',
+                'outdoor plant': '🌳',
+                'plant': '🌱',
+                'pot': '🏺',
+                'pond': '💧',
+                'default': '🍃'
+            };
+
+            const getIcon = (cat) => {
+                const c = cat.toLowerCase();
+                for (let key of Object.keys(icons)) {
+                    if (c.includes(key)) return icons[key];
+                }
+                return icons.default;
+            };
+
             const mkBtn = (c, name) => `
                 <button onclick="setCat('${c}')" 
                     class="px-5 py-2 rounded-full text-sm font-medium transition-all ${activeCat === c
                     ? 'bg-forest-600 text-white shadow-lg scale-105'
                     : 'bg-white text-forest-700 hover:bg-forest-100'}">
-                    ${icons[c] || icons.default} ${name}
+                    ${getIcon(name)} ${name}
                 </button>`;
 
-            el.filters.innerHTML = mkBtn('all', 'All Collection') + cats.map(c => mkBtn(c, c.charAt(0).toUpperCase() + c.slice(1))).join('');
+            el.filters.innerHTML = mkBtn('all', 'All Collection') + cats.map(c => mkBtn(c.toLowerCase(), c)).join('');
         }
 
+        // Create product card HTML
         function createCard(p, i) {
-            const img = driveImg(getVal(p, 'Image', 'image', 'Photo'));
-            const name = getVal(p, 'Name', 'name', 'Title') || 'Unnamed Detail';
-            const price = getVal(p, 'Price', 'price', 'Cost');
-            const cat = getVal(p, 'Category', 'category');
+            const imgUrl = getVal(p, 'IMAGE URL', 'Image URL', 'IMAGE', 'image', 'ImageURL');
+            const img = driveImg(imgUrl);
+            const name = getVal(p, 'NAME', 'Name', 'name', 'Title') || 'Unnamed Item';
+            const price = getVal(p, 'PRICE', 'Price', 'price', 'Cost');
+            const cat = getVal(p, 'CATEGORY', 'Category', 'category') || 'Plants';
+
+            // Clean up name - remove newlines
+            const cleanName = name.replace(/\n/g, ' ').trim();
 
             return `
                 <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 opacity-0 animate-slide-up" style="animation-delay: ${i * 0.05}s">
                     <div class="relative h-64 overflow-hidden">
-                        <img src="${img}" alt="${name}" loading="lazy" 
+                        <img src="${img || 'https://placehold.co/400x300/e1f7e6/1f6a4c?text=' + encodeURIComponent(cleanName.substring(0, 20))}" alt="${cleanName}" loading="lazy" 
                             class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            onerror="this.src='https://placehold.co/400x300/e1f7e6/1f6a4c?text=No+Image'">
+                            onerror="this.src='https://placehold.co/400x300/e1f7e6/1f6a4c?text=${encodeURIComponent(cleanName.substring(0, 20))}'">
                         <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                         <span class="absolute top-4 left-4 bg-white/90 backdrop-blur text-forest-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">${cat}</span>
                     </div>
                     <div class="p-6">
-                        <h3 class="font-serif text-xl text-forest-900 mb-2 truncate">${name}</h3>
+                        <h3 class="font-serif text-xl text-forest-900 mb-2 truncate">${cleanName}</h3>
                         <div class="flex items-center justify-between mt-4 border-t border-forest-50 pt-4">
                             <span class="text-gold-600 font-bold text-lg">${formatMoney(price)}</span>
-                            <a href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hi, interested in: ' + name)}" target="_blank" 
+                            <a href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent('Hi, interested in: ' + cleanName)}" target="_blank" 
                                 class="text-forest-500 hover:text-forest-700 transition-colors flex items-center gap-1 text-sm font-medium">
                                 Buy Now <svg class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
                             </a>
@@ -460,8 +527,12 @@
             `;
         }
 
+        // Render product grid
         function renderGrid() {
-            const filtered = activeCat === 'all' ? products : products.filter(p => getVal(p, 'Category').toLowerCase() === activeCat);
+            const filtered = activeCat === 'all'
+                ? products
+                : products.filter(p => getVal(p, 'CATEGORY', 'Category').toLowerCase() === activeCat.toLowerCase());
+
             if (filtered.length === 0) {
                 el.grid.innerHTML = '';
                 el.empty.classList.remove('hidden');
@@ -471,12 +542,15 @@
             }
         }
 
+        // Set active category
         window.setCat = (c) => {
             activeCat = c;
-            renderFilters([...new Set(products.map(p => getVal(p, 'Category').toLowerCase()))].sort());
+            const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
+            renderFilters(cats);
             renderGrid();
         };
 
+        // Fetch and parse CSV data
         window.fetchData = () => {
             el.loading.classList.remove('hidden');
             el.error.classList.add('hidden');
@@ -489,8 +563,13 @@
                 complete: (res) => {
                     el.loading.classList.add('hidden');
                     if (res.data && res.data.length) {
-                        products = res.data;
-                        const cats = [...new Set(products.map(p => getVal(p, 'Category').toLowerCase()))].filter(Boolean).sort();
+                        // Filter out empty rows
+                        products = res.data.filter(p => {
+                            const name = getVal(p, 'NAME', 'Name');
+                            return name && name.length > 0;
+                        });
+
+                        const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
                         renderFilters(cats);
                         renderGrid();
                     } else {
@@ -498,7 +577,7 @@
                     }
                 },
                 error: (err) => {
-                    console.error(err);
+                    console.error('CSV Parse Error:', err);
                     el.loading.classList.add('hidden');
                     el.error.classList.remove('hidden');
                 }

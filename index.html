@@ -534,12 +534,16 @@
 
             return `
                 <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 opacity-0 animate-slide-up" style="animation-delay: ${i * 0.05}s">
-                    <div class="relative h-80 overflow-hidden">
+                    <div class="relative h-72 overflow-hidden bg-forest-100">
+                        <!-- Blurred background layer -->
+                        <div class="absolute inset-0 scale-110" 
+                            style="background-image: url('${img || 'https://placehold.co/400x300/e1f7e6/1f6a4c?text=' + encodeURIComponent(cleanName.substring(0, 20))}'); background-size: cover; background-position: center; filter: blur(20px) saturate(1.2); opacity: 0.8;"></div>
+                        <!-- Main product image -->
                         <img src="${img || 'https://placehold.co/400x300/e1f7e6/1f6a4c?text=' + encodeURIComponent(cleanName.substring(0, 20))}" alt="${cleanName}" loading="lazy" 
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            class="relative w-full h-full object-contain transition-transform duration-700 group-hover:scale-105 z-10"
                             onerror="this.src='https://placehold.co/400x300/e1f7e6/1f6a4c?text=${encodeURIComponent(cleanName.substring(0, 20))}'">
-                        <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
-                        <span class="absolute top-4 left-4 bg-white/90 backdrop-blur text-forest-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">${cat}</span>
+                        <div class="absolute inset-0 bg-black/5 group-hover:bg-black/0 transition-colors z-20"></div>
+                        <span class="absolute top-4 left-4 bg-white/90 backdrop-blur text-forest-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider z-30">${cat}</span>
                     </div>
                     <div class="p-6">
                         <h3 class="font-serif text-xl text-forest-900 mb-2 truncate">${cleanName}</h3>

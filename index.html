@@ -168,7 +168,35 @@
                     </svg>
                     <span>Connect</span>
                 </a>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-btn" class="md:hidden text-white p-2 focus:outline-none z-50 relative">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path id="menu-icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                        <path id="close-icon" class="hidden" stroke-linecap="round" stroke-linejoin="round"
+                            stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
+        </div>
+
+        <!-- Mobile Menu Overlay -->
+        <div id="mobile-menu"
+            class="fixed inset-0 bg-forest-950/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-300 flex flex-col items-center justify-center">
+            <nav class="flex flex-col items-center gap-8 text-2xl font-serif text-white">
+                <a href="#about" class="mobile-link hover:text-gold-400 transition-colors">About</a>
+                <a href="#collection" class="mobile-link hover:text-gold-400 transition-colors">Collection</a>
+                <a href="#visit" class="mobile-link hover:text-gold-400 transition-colors">Visit Us</a>
+                <a href="https://wa.me/919562532919" target="_blank"
+                    class="mobile-link text-gold-400 flex items-center gap-2 mt-4">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                        <use href="#icon-whatsapp" />
+                    </svg>
+                    Connect via WhatsApp
+                </a>
+            </nav>
+        </div>
         </div>
     </nav>
 
@@ -183,7 +211,7 @@
         </div>
 
         <!-- Content -->
-        <div class="relative z-10 container mx-auto px-6 text-center text-white mt-16">
+        <div class="relative z-10 container mx-auto px-6 text-center text-white mt-20 md:mt-16">
             <span
                 class="inline-block py-1 px-4 border border-white/30 rounded-full text-sm font-medium bg-white/5 backdrop-blur-sm mb-6 animate-slide-up"
                 style="animation-delay: 0.1s;">Est. Kottayam, Kerala</span>
@@ -220,7 +248,7 @@
         <div class="container mx-auto px-6">
             <div class="flex flex-col lg:flex-row items-center gap-16">
                 <div class="w-full lg:w-1/2 relative">
-                    <div class="aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl relative z-10">
+                    <div class="aspect-square md:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl relative z-10">
                         <!-- Placeholder for secondary image, using a pattern for now -->
                         <div class="w-full h-full bg-forest-900 flex items-center justify-center p-12">
                             <svg viewBox="0 0 1024 672" class="w-full text-forest-800 opacity-20">
@@ -506,9 +534,9 @@
 
             return `
                 <div class="group bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 opacity-0 animate-slide-up" style="animation-delay: ${i * 0.05}s">
-                    <div class="relative h-64 overflow-hidden">
+                    <div class="relative h-64 overflow-hidden bg-forest-50">
                         <img src="${img || 'https://placehold.co/400x300/e1f7e6/1f6a4c?text=' + encodeURIComponent(cleanName.substring(0, 20))}" alt="${cleanName}" loading="lazy" 
-                            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            class="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
                             onerror="this.src='https://placehold.co/400x300/e1f7e6/1f6a4c?text=${encodeURIComponent(cleanName.substring(0, 20))}'">
                         <div class="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
                         <span class="absolute top-4 left-4 bg-white/90 backdrop-blur text-forest-800 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">${cat}</span>
@@ -597,6 +625,35 @@
                 nav.classList.add('py-4');
                 nav.classList.remove('py-2', 'shadow-lg');
             }
+        });
+
+        // Mobile Menu Logic
+        const menuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        const menuIcon = document.getElementById('menu-icon');
+        const closeIcon = document.getElementById('close-icon');
+        const mobileLinks = document.querySelectorAll('.mobile-link');
+
+        function toggleMenu() {
+            const isOpen = !mobileMenu.classList.contains('translate-x-full');
+
+            if (isOpen) {
+                mobileMenu.classList.add('translate-x-full');
+                menuIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            } else {
+                mobileMenu.classList.remove('translate-x-full');
+                menuIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+                document.body.classList.add('overflow-hidden');
+            }
+        }
+
+        menuBtn.addEventListener('click', toggleMenu);
+
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', toggleMenu);
         });
     </script>
 </body>

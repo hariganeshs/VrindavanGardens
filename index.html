@@ -686,7 +686,7 @@
             // Error configurations for different failure types
             const errorConfigs = {
                 'network_offline': {
-                    title: 'You're Offline',
+                    title: 'You\'re Offline',
                     message: 'Your device appears to be disconnected from the internet.',
                     reason: 'No Internet Connection',
                     hint: 'Check your WiFi or mobile data and try again.',
@@ -699,7 +699,7 @@
                 },
                 'server_unreachable': {
                     title: 'Server Unreachable',
-                    message: 'We couldn't connect to Google Sheets where our catalog is hosted.',
+                    message: 'We couldn\'t connect to Google Sheets where our catalog is hosted.',
                     reason: 'Image/Data Server Unreachable',
                     hint: 'The Google Sheets server may be temporarily unavailable. Please try again in a few minutes.',
                     code: 'ERR_SERVER_UNREACHABLE',
@@ -735,7 +735,7 @@
                 },
                 'invalid_format': {
                     title: 'Data Format Error',
-                    message: 'The product data couldn't be read properly.',
+                    message: 'The product data couldn\'t be read properly.',
                     reason: 'Invalid Data Format Received',
                     hint: 'There may be an issue with the Google Sheets format. Please contact support.',
                     code: 'ERR_INVALID_FORMAT',
@@ -807,6 +807,11 @@
             if (error) {
                 const errorStr = String(error).toLowerCase();
                 const errorMessage = error.message ? error.message.toLowerCase() : '';
+                const errorName = error.name ? error.name.toLowerCase() : '';
+
+                if (errorName === 'aborterror' || errorStr.includes('abort') || errorMessage.includes('abort')) {
+                    return 'timeout';
+                }
 
                 if (errorStr.includes('cors') || errorMessage.includes('cors') ||
                     errorStr.includes('cross-origin') || errorMessage.includes('blocked')) {
@@ -836,8 +841,22 @@
             // Check network status first
             if (!navigator.onLine) {
                 showError('network_offline');
+                el.loading.classList.add('hidden');
                 return;
             }
+
+            const fetchWithTimeout = async (url, timeout = 30000) => {
+                const controller = new AbortController();
+                const id = setTimeout(() => controller.abort(), timeout);
+                try {
+                    const response = await fetch(url, { signal: controller.signal });
+                    clearTimeout(id);
+                    return response;
+                } catch (error) {
+                    clearTimeout(id);
+                    throw error;
+                }
+            };
 
             try {
                 // Check if PapaParse is loaded
@@ -845,21 +864,27 @@
                     throw new Error('PapaParse library not loaded');
                 }
 
-                // Use native fetch for better control
-                const response = await fetch(CSV_URL);
+                let csvText = '';
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                try {
+                    // Attempt 1: Direct Fetch
+                    console.log('Attempting direct fetch...');
+                    const response = await fetchWithTimeout(CSV_URL);
+                    if (!response.ok) throw new Error('Direct fetch failed');
+                    csvText = await response.text();
+                } catch (directError) {
+                    console.warn('Direct fetch failed, trying proxy...', directError);
+                    // Attempt 2: CORS Proxy
+                    const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
+                    const response = await fetchWithTimeout(PROXY_URL);
+                    if (!response.ok) throw new Error(`Proxy fetch failed: ${response.status}`);
+                    csvText = await response.text();
                 }
-
-                const csvText = await response.text();
 
                 Papa.parse(csvText, {
                     header: true,
                     skipEmptyLines: true,
                     complete: (res) => {
-                        el.loading.classList.add('hidden');
-
                         // Check for parsing errors
                         if (res.errors && res.errors.length > 0) {
                             console.error('Parse errors:', res.errors);
@@ -897,6 +922,9 @@
                 console.error('Fetch Error:', error);
                 const errorType = detectErrorType(error);
                 showError(errorType, error);
+            } finally {
+                // Fail-safe: Ensure loader is ALWAYS hidden
+                el.loading.classList.add('hidden');
             }
         };
 

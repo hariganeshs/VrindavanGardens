@@ -828,7 +828,7 @@
         }
 
         // Fetch and parse CSV data
-        window.fetchData = () => {
+        window.fetchData = async () => {
             el.loading.classList.remove('hidden');
             el.error.classList.add('hidden');
             el.grid.innerHTML = '';
@@ -839,45 +839,65 @@
                 return;
             }
 
-            Papa.parse(CSV_URL, {
-                download: true,
-                header: true,
-                skipEmptyLines: true,
-                complete: (res) => {
-                    el.loading.classList.add('hidden');
+            try {
+                // Check if PapaParse is loaded
+                if (typeof Papa === 'undefined') {
+                    throw new Error('PapaParse library not loaded');
+                }
 
-                    // Check for parsing errors
-                    if (res.errors && res.errors.length > 0) {
-                        console.error('Parse errors:', res.errors);
-                        showError('invalid_format', res.errors);
-                        return;
-                    }
+                // Use native fetch for better control
+                const response = await fetch(CSV_URL);
 
-                    if (res.data && res.data.length) {
-                        // Filter out empty rows
-                        products = res.data.filter(p => {
-                            const name = getVal(p, 'NAME', 'Name');
-                            return name && name.length > 0;
-                        });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                        // Check if we have any valid products
-                        if (products.length === 0) {
-                            showError('empty_data');
+                const csvText = await response.text();
+
+                Papa.parse(csvText, {
+                    header: true,
+                    skipEmptyLines: true,
+                    complete: (res) => {
+                        el.loading.classList.add('hidden');
+
+                        // Check for parsing errors
+                        if (res.errors && res.errors.length > 0) {
+                            console.error('Parse errors:', res.errors);
+                            showError('invalid_format', res.errors);
                             return;
                         }
 
-                        const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
-                        renderFilters(cats);
-                        renderGrid();
-                    } else {
-                        showError('empty_data');
+                        if (res.data && res.data.length) {
+                            // Filter out empty rows
+                            products = res.data.filter(p => {
+                                const name = getVal(p, 'NAME', 'Name');
+                                return name && name.length > 0;
+                            });
+
+                            // Check if we have any valid products
+                            if (products.length === 0) {
+                                showError('empty_data');
+                                return;
+                            }
+
+                            const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
+                            renderFilters(cats);
+                            renderGrid();
+                        } else {
+                            showError('empty_data');
+                        }
+                    },
+                    error: (err) => {
+                        console.error('Papa Parse Error:', err);
+                        showError('invalid_format', err);
                     }
-                },
-                error: (err) => {
-                    const errorType = detectErrorType(err);
-                    showError(errorType, err);
-                }
-            });
+                });
+
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                const errorType = detectErrorType(error);
+                showError(errorType, error);
+            }
         };
 
         // Init

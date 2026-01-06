@@ -249,15 +249,9 @@
             <div class="flex flex-col lg:flex-row items-center gap-16">
                 <div class="w-full lg:w-1/2 relative">
                     <div class="aspect-square md:aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl relative z-10">
-                        <!-- Placeholder for secondary image, using a pattern for now -->
-                        <div class="w-full h-full bg-forest-900 flex items-center justify-center p-12">
-                            <svg viewBox="0 0 1024 672" class="w-full text-forest-800 opacity-20">
-                                <path d="M743.985,468.012 C745.403,466.53 745.757,464.868 744.856,462.979..."
-                                    fill="currentColor" />
-                            </svg>
-                            <!-- Note: Replaced full SVG path in production code for brevity, here focusing on layout -->
-                            <span class="text-white/20 font-serif text-6xl">VG</span>
-                        </div>
+                        <img src="assets/about_nursery.png"
+                            alt="Inside Vrindavan Gardens - Lush tropical plants in our nursery"
+                            class="w-full h-full object-cover transition-transform duration-700 hover:scale-105">
                     </div>
                     <!-- Decorative Element -->
                     <div class="absolute -bottom-10 -right-10 w-64 h-64 bg-gold-400/20 rounded-full blur-3xl -z-0">
@@ -313,9 +307,67 @@
             </div>
 
             <!-- Error State -->
-            <div id="error" class="hidden text-center py-20">
-                <p class="text-red-500 mb-4">Unable to load the garden.</p>
-                <button onclick="fetchData()" class="px-6 py-2 bg-forest-600 text-white rounded-full">Try Again</button>
+            <div id="error" class="hidden text-center py-20 max-w-lg mx-auto">
+                <!-- Error Icon -->
+                <div class="w-16 h-16 mx-auto mb-6 rounded-full bg-red-100 flex items-center justify-center">
+                    <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+
+                <!-- Error Title -->
+                <h3 id="error-title" class="text-xl font-semibold text-gray-800 mb-2">Unable to Load Products</h3>
+
+                <!-- Error Message -->
+                <p id="error-message" class="text-gray-600 mb-4">We couldn't fetch the product catalog.</p>
+
+                <!-- Error Details Box -->
+                <div id="error-details" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-left">
+                    <div class="flex items-start gap-3">
+                        <div class="flex-shrink-0 mt-0.5">
+                            <span id="error-icon"
+                                class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-xs font-bold">!</span>
+                        </div>
+                        <div>
+                            <p id="error-reason" class="text-sm font-medium text-red-800">Error loading data</p>
+                            <p id="error-hint" class="text-sm text-red-600 mt-1">Please check your internet connection
+                                and try again.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Details (collapsible) -->
+                <details class="text-left bg-gray-50 rounded-lg p-4 mb-6">
+                    <summary class="text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900">
+                        Technical Details
+                    </summary>
+                    <div class="mt-3 text-xs text-gray-500 font-mono bg-gray-100 rounded p-3 overflow-x-auto">
+                        <p id="error-code" class="mb-1">Error Code: Unknown</p>
+                        <p id="error-type" class="mb-1">Type: Connection Error</p>
+                        <p id="error-timestamp" class="mb-1">Time: --</p>
+                    </div>
+                </details>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="fetchData()"
+                        class="px-6 py-2.5 bg-forest-600 hover:bg-forest-700 text-white rounded-full font-medium transition-colors flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Retry Loading
+                    </button>
+                    <a href="https://wa.me/919447143347?text=Hi!%20I%20am%20having%20trouble%20viewing%20the%20product%20catalog%20on%20vrindavangardens.com"
+                        target="_blank"
+                        class="px-6 py-2.5 bg-white border border-gray-300 hover:border-forest-500 text-gray-700 hover:text-forest-700 rounded-full font-medium transition-all flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                            <use href="#icon-whatsapp" />
+                        </svg>
+                        Contact Support
+                    </a>
+                </div>
             </div>
 
             <!-- Grid -->
@@ -603,11 +655,166 @@
             renderGrid();
         };
 
+        // Show specific error with detailed information
+        function showError(errorType, rawError = null) {
+            el.loading.classList.add('hidden');
+            el.error.classList.remove('hidden');
+
+            // Error configurations for different failure types
+            const errorConfigs = {
+                'network_offline': {
+                    title: 'You're Offline',
+                    message: 'Your device appears to be disconnected from the internet.',
+                    reason: 'No Internet Connection',
+                    hint: 'Check your WiFi or mobile data and try again.',
+                    code: 'ERR_NETWORK_OFFLINE',
+                    type: 'Network Error',
+                    iconBg: 'bg-orange-100',
+                    iconColor: 'text-orange-600',
+                    boxBg: 'bg-orange-50',
+                    boxBorder: 'border-orange-200'
+                },
+                'server_unreachable': {
+                    title: 'Server Unreachable',
+                    message: 'We couldn't connect to Google Sheets where our catalog is hosted.',
+                    reason: 'Image/Data Server Unreachable',
+                    hint: 'The Google Sheets server may be temporarily unavailable. Please try again in a few minutes.',
+                    code: 'ERR_SERVER_UNREACHABLE',
+                    type: 'Server Error',
+                    iconBg: 'bg-red-100',
+                    iconColor: 'text-red-600',
+                    boxBg: 'bg-red-50',
+                    boxBorder: 'border-red-200'
+                },
+                'cors_blocked': {
+                    title: 'Access Blocked',
+                    message: 'Your browser blocked the request due to security restrictions.',
+                    reason: 'Cross-Origin Request Blocked (CORS)',
+                    hint: 'Try refreshing the page or using a different browser. If on a company network, security settings may be blocking access.',
+                    code: 'ERR_CORS_BLOCKED',
+                    type: 'Security Error',
+                    iconBg: 'bg-yellow-100',
+                    iconColor: 'text-yellow-600',
+                    boxBg: 'bg-yellow-50',
+                    boxBorder: 'border-yellow-200'
+                },
+                'empty_data': {
+                    title: 'No Products Found',
+                    message: 'The catalog loaded but appears to be empty.',
+                    reason: 'Product Catalog is Empty',
+                    hint: 'The product list may be updating. Contact us on WhatsApp for immediate assistance.',
+                    code: 'ERR_EMPTY_CATALOG',
+                    type: 'Data Error',
+                    iconBg: 'bg-blue-100',
+                    iconColor: 'text-blue-600',
+                    boxBg: 'bg-blue-50',
+                    boxBorder: 'border-blue-200'
+                },
+                'invalid_format': {
+                    title: 'Data Format Error',
+                    message: 'The product data couldn't be read properly.',
+                    reason: 'Invalid Data Format Received',
+                    hint: 'There may be an issue with the Google Sheets format. Please contact support.',
+                    code: 'ERR_INVALID_FORMAT',
+                    type: 'Parse Error',
+                    iconBg: 'bg-purple-100',
+                    iconColor: 'text-purple-600',
+                    boxBg: 'bg-purple-50',
+                    boxBorder: 'border-purple-200'
+                },
+                'timeout': {
+                    title: 'Request Timed Out',
+                    message: 'The server took too long to respond.',
+                    reason: 'Connection Timeout',
+                    hint: 'Your internet may be slow, or the server is under heavy load. Try again.',
+                    code: 'ERR_TIMEOUT',
+                    type: 'Timeout Error',
+                    iconBg: 'bg-gray-100',
+                    iconColor: 'text-gray-600',
+                    boxBg: 'bg-gray-50',
+                    boxBorder: 'border-gray-200'
+                },
+                'unknown': {
+                    title: 'Something Went Wrong',
+                    message: 'An unexpected error occurred while loading the catalog.',
+                    reason: 'Unknown Error',
+                    hint: 'Please try again. If the problem persists, contact us via WhatsApp.',
+                    code: 'ERR_UNKNOWN',
+                    type: 'Unknown Error',
+                    iconBg: 'bg-red-100',
+                    iconColor: 'text-red-600',
+                    boxBg: 'bg-red-50',
+                    boxBorder: 'border-red-200'
+                }
+            };
+
+            const config = errorConfigs[errorType] || errorConfigs['unknown'];
+
+            // Update UI elements
+            document.getElementById('error-title').textContent = config.title;
+            document.getElementById('error-message').textContent = config.message;
+            document.getElementById('error-reason').textContent = config.reason;
+            document.getElementById('error-hint').textContent = config.hint;
+            document.getElementById('error-code').textContent = `Error Code: ${config.code}`;
+            document.getElementById('error-type').textContent = `Type: ${config.type}`;
+            document.getElementById('error-timestamp').textContent = `Time: ${new Date().toLocaleString()}`;
+
+            // Update error icon styling
+            const errorIcon = document.getElementById('error-icon');
+            errorIcon.className = `inline-flex items-center justify-center w-6 h-6 rounded-full ${config.iconBg} ${config.iconColor} text-xs font-bold`;
+
+            // Update error details box styling
+            const errorDetails = document.getElementById('error-details');
+            errorDetails.className = `${config.boxBg} border ${config.boxBorder} rounded-xl p-4 mb-6 text-left`;
+
+            // Update reason/hint text colors based on error type
+            document.getElementById('error-reason').className = `text-sm font-medium ${config.iconColor.replace('text-', 'text-').replace('600', '800')}`;
+            document.getElementById('error-hint').className = `text-sm ${config.iconColor} mt-1`;
+
+            // Log for debugging
+            console.error(`[${config.code}] ${config.type}: ${config.reason}`, rawError);
+        }
+
+        // Detect error type from error object
+        function detectErrorType(error) {
+            if (!navigator.onLine) {
+                return 'network_offline';
+            }
+
+            if (error) {
+                const errorStr = String(error).toLowerCase();
+                const errorMessage = error.message ? error.message.toLowerCase() : '';
+
+                if (errorStr.includes('cors') || errorMessage.includes('cors') ||
+                    errorStr.includes('cross-origin') || errorMessage.includes('blocked')) {
+                    return 'cors_blocked';
+                }
+
+                if (errorStr.includes('timeout') || errorMessage.includes('timeout') ||
+                    errorStr.includes('timed out')) {
+                    return 'timeout';
+                }
+
+                if (errorStr.includes('network') || errorMessage.includes('network') ||
+                    errorStr.includes('failed to fetch') || errorMessage.includes('fetch')) {
+                    return 'server_unreachable';
+                }
+            }
+
+            return 'unknown';
+        }
+
         // Fetch and parse CSV data
         window.fetchData = () => {
             el.loading.classList.remove('hidden');
             el.error.classList.add('hidden');
             el.grid.innerHTML = '';
+
+            // Check network status first
+            if (!navigator.onLine) {
+                showError('network_offline');
+                return;
+            }
 
             Papa.parse(CSV_URL, {
                 download: true,
@@ -615,6 +822,14 @@
                 skipEmptyLines: true,
                 complete: (res) => {
                     el.loading.classList.add('hidden');
+
+                    // Check for parsing errors
+                    if (res.errors && res.errors.length > 0) {
+                        console.error('Parse errors:', res.errors);
+                        showError('invalid_format', res.errors);
+                        return;
+                    }
+
                     if (res.data && res.data.length) {
                         // Filter out empty rows
                         products = res.data.filter(p => {
@@ -622,17 +837,22 @@
                             return name && name.length > 0;
                         });
 
+                        // Check if we have any valid products
+                        if (products.length === 0) {
+                            showError('empty_data');
+                            return;
+                        }
+
                         const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
                         renderFilters(cats);
                         renderGrid();
                     } else {
-                        el.error.classList.remove('hidden');
+                        showError('empty_data');
                     }
                 },
                 error: (err) => {
-                    console.error('CSV Parse Error:', err);
-                    el.loading.classList.add('hidden');
-                    el.error.classList.remove('hidden');
+                    const errorType = detectErrorType(err);
+                    showError(errorType, err);
                 }
             });
         };

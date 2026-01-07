@@ -316,6 +316,21 @@
             <div class="text-center mb-16">
                 <h2 class="font-serif text-4xl md:text-5xl text-forest-900 mb-4">Curated Collection</h2>
                 <div class="h-1 w-20 bg-gold-400 mx-auto rounded-full"></div>
+                <!-- Cache status and refresh button -->
+                <div id="cache-status" class="mt-4 flex items-center justify-center gap-3 text-sm text-gray-500 hidden">
+                    <span id="cache-label" class="flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-forest-400"></span>
+                        <span id="cache-text">Live data</span>
+                    </span>
+                    <button onclick="forceRefresh()"
+                        class="flex items-center gap-1 px-3 py-1 rounded-full bg-white border border-gray-200 hover:border-forest-400 hover:text-forest-600 transition-all text-xs font-medium">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Refresh
+                    </button>
+                </div>
             </div>
 
             <!-- Filters -->
@@ -511,8 +526,21 @@
     <script>
         const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTA7D1wlUdI93kjQNHHVTxmyM2L_MoTvbPmOGhOOlMfQb9F44q24_tw6BZOGgg4OyEfgWFAKKVwczZa/pub?output=csv';
         const WHATSAPP = '919447143347';
+
+        // Cache configuration
+        const CACHE_KEY = 'vrindavan_products_cache';
+        const CACHE_DURATION = 1000 * 60 * 30; // 30 minutes
+
+        // Multiple CORS proxy fallbacks for resilience
+        const PROXY_URLS = [
+            (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+            (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+            (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+        ];
+
         let products = [];
         let activeCat = 'all';
+        let loadedFromCache = false;
 
         // Helper to get value from product with flexible key matching
         const getVal = (p, ...keys) => {
@@ -832,14 +860,89 @@
             return 'unknown';
         }
 
+        // Update cache status UI
+        function updateCacheStatus(fromCache, timestamp = null) {
+            const statusEl = document.getElementById('cache-status');
+            const textEl = document.getElementById('cache-text');
+            const dotEl = statusEl?.querySelector('.w-2');
+
+            if (!statusEl || !textEl) return;
+
+            statusEl.classList.remove('hidden');
+
+            if (fromCache && timestamp) {
+                const mins = Math.round((Date.now() - timestamp) / 60000);
+                textEl.textContent = mins < 1 ? 'Cached (just now)' : `Cached (${mins}m ago)`;
+                if (dotEl) dotEl.classList.replace('bg-forest-400', 'bg-amber-400');
+            } else {
+                textEl.textContent = 'Live data';
+                if (dotEl) dotEl.classList.replace('bg-amber-400', 'bg-forest-400');
+            }
+        }
+
+        // Force refresh - clears cache and re-fetches
+        window.forceRefresh = () => {
+            console.log('Force refresh: clearing cache...');
+            localStorage.removeItem(CACHE_KEY);
+            loadedFromCache = false;
+            fetchData();
+        };
+
         // Fetch and parse CSV data
         window.fetchData = async () => {
             el.loading.classList.remove('hidden');
             el.error.classList.add('hidden');
             el.grid.innerHTML = '';
+            loadedFromCache = false;
 
-            // Check network status first
+            // Check cache first (unless force refreshing)
+            try {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    const { data, timestamp } = JSON.parse(cached);
+                    const age = Date.now() - timestamp;
+
+                    if (age < CACHE_DURATION && data && data.length > 0) {
+                        console.log(`Cache hit! Age: ${Math.round(age / 60000)}m, Items: ${data.length}`);
+                        products = data;
+                        loadedFromCache = true;
+
+                        const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
+                        renderFilters(cats);
+                        renderGrid();
+                        updateCacheStatus(true, timestamp);
+                        el.loading.classList.add('hidden');
+                        return;
+                    } else {
+                        console.log('Cache expired or empty, fetching fresh data...');
+                    }
+                }
+            } catch (cacheError) {
+                console.warn('Cache read error:', cacheError);
+            }
+
+            // Check network status
             if (!navigator.onLine) {
+                // Try to use stale cache if available when offline
+                try {
+                    const cached = localStorage.getItem(CACHE_KEY);
+                    if (cached) {
+                        const { data, timestamp } = JSON.parse(cached);
+                        if (data && data.length > 0) {
+                            console.log('Offline: using stale cache');
+                            products = data;
+                            loadedFromCache = true;
+
+                            const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
+                            renderFilters(cats);
+                            renderGrid();
+                            updateCacheStatus(true, timestamp);
+                            el.loading.classList.add('hidden');
+                            return;
+                        }
+                    }
+                } catch (e) { }
+
                 showError('network_offline');
                 el.loading.classList.add('hidden');
                 return;
@@ -865,20 +968,40 @@
                 }
 
                 let csvText = '';
+                let fetchMethod = 'direct';
 
+                // Attempt 1: Direct Fetch
                 try {
-                    // Attempt 1: Direct Fetch
                     console.log('Attempting direct fetch...');
                     const response = await fetchWithTimeout(CSV_URL);
                     if (!response.ok) throw new Error('Direct fetch failed');
                     csvText = await response.text();
+                    fetchMethod = 'direct';
                 } catch (directError) {
-                    console.warn('Direct fetch failed, trying proxy...', directError);
-                    // Attempt 2: CORS Proxy
-                    const PROXY_URL = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(CSV_URL);
-                    const response = await fetchWithTimeout(PROXY_URL);
-                    if (!response.ok) throw new Error(`Proxy fetch failed: ${response.status}`);
-                    csvText = await response.text();
+                    console.warn('Direct fetch failed, trying proxies...', directError);
+
+                    // Attempt 2-4: Try each proxy in sequence
+                    let proxySuccess = false;
+                    for (let i = 0; i < PROXY_URLS.length; i++) {
+                        try {
+                            const proxyUrl = PROXY_URLS[i](CSV_URL);
+                            console.log(`Trying proxy ${i + 1}/${PROXY_URLS.length}...`);
+                            const response = await fetchWithTimeout(proxyUrl, 15000);
+                            if (response.ok) {
+                                csvText = await response.text();
+                                fetchMethod = `proxy-${i + 1}`;
+                                proxySuccess = true;
+                                console.log(`Proxy ${i + 1} succeeded!`);
+                                break;
+                            }
+                        } catch (proxyError) {
+                            console.warn(`Proxy ${i + 1} failed:`, proxyError.message);
+                        }
+                    }
+
+                    if (!proxySuccess) {
+                        throw new Error('All fetch methods failed');
+                    }
                 }
 
                 Papa.parse(csvText, {
@@ -905,9 +1028,21 @@
                                 return;
                             }
 
+                            // Save to cache
+                            try {
+                                localStorage.setItem(CACHE_KEY, JSON.stringify({
+                                    data: products,
+                                    timestamp: Date.now()
+                                }));
+                                console.log(`Cached ${products.length} products (via ${fetchMethod})`);
+                            } catch (cacheError) {
+                                console.warn('Failed to cache data:', cacheError);
+                            }
+
                             const cats = [...new Set(products.map(p => getVal(p, 'CATEGORY', 'Category')))].filter(Boolean).sort();
                             renderFilters(cats);
                             renderGrid();
+                            updateCacheStatus(false);
                         } else {
                             showError('empty_data');
                         }
